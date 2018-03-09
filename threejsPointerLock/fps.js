@@ -21,6 +21,8 @@ var floorUrl = "../images/checker_large.gif";
 var cubeUrl = "../images/wooden_crate_texture_by_zackseeker-d38ddsb.png";
 var gun;
 
+var bullets = [];
+var canShoot;
 
 // http://www.html5rocks.com/en/tutorials/pointerlock/intro/
 
@@ -108,6 +110,9 @@ function onKeyDown ( event )
             canJump = false;
             break;
 
+        case 70: // f fire
+            canShoot = true;
+            break;
     }
 
 }
@@ -134,6 +139,10 @@ function onKeyUp( event ) {
         case 39: // right
         case 68: // d
             moveRight = false;
+            break;
+        
+            case 70: // f fire
+            canShoot = false;
             break;
 
     }
@@ -196,9 +205,9 @@ function createScene(canvas)
 
     // objects
 
-    // var boxGeometry = new THREE.BoxGeometry( 20, 20, 20 );
-    // var cubeMap = new THREE.TextureLoader().load(cubeUrl);
-    //     var boxMaterial = new THREE.MeshPhongMaterial( { specular: 0xffffff, flatShading: true, map:cubeMap } );
+    var boxGeometry = new THREE.BoxGeometry( 20, 20, 20 );
+    var cubeMap = new THREE.TextureLoader().load(cubeUrl);
+        var boxMaterial = new THREE.MeshPhongMaterial( { specular: 0xffffff, flatShading: true, map:cubeMap } );
 
     // for ( var i = 0; i < 500; i ++ ) 
     // {
@@ -216,9 +225,8 @@ function createScene(canvas)
 
     gun = loadGun();
     gun.rotation.y = Math.PI/2 ;
-    //gun.position.set(1,8.5,-4);
 
-    scene.add(gun)
+    camera.add(gun)
 }
 
 function onWindowResize() {
@@ -243,6 +251,7 @@ function run()
 
         var onObject = intersections.length > 0;
 
+
         var time = performance.now();
         var delta = ( time - prevTime ) / 1000;
 
@@ -259,6 +268,7 @@ function run()
 
         if ( onObject === true ) 
         {
+            console.log("caja tocada");
             velocity.y = Math.max( 0, velocity.y );
             canJump = true;
         }
@@ -267,19 +277,14 @@ function run()
         controls.getObject().translateY( velocity.y * delta );
         controls.getObject().translateZ( velocity.z * delta );
 
+
+        //Position gun in front camera
         gun.position.set(
-          controls.getObject().position.x + 1 + Math.sin(controls.getObject().rotation.y),
-          controls.getObject().position.y - 2 ,
-          controls.getObject().position.z - 4 + Math.sin(controls.getObject().rotation.y)
+            camera.position.x +1,
+            camera.position.y -1.5,
+            camera.position.z -3
         );
 
-        gun.rotation.set(
-          controls.getObject().rotation.x,
-          controls.getObject().rotation.y +  Math.PI/2,
-          controls.getObject().rotation.z
-        );
-
-        console.log(controls.getDirection);
 
         if ( controls.getObject().position.y < 10 ) {
             velocity.y = 0;
@@ -289,6 +294,50 @@ function run()
         }
 
         prevTime = time;
+
+
+        //posicion de las balas y quitar balas
+        for(var index=0; index<bullets.length; index+=1){
+            if( bullets[index] === undefined ) continue;
+            if( bullets[index].alive == false ){
+                bullets.splice(index,1);
+                continue;
+            }
+            bullets[index].position.add(bullets[index].velocity);
+        }
+
+        // shoot a bullet
+	    if(canShoot){ // f key            
+            var bullet = new THREE.Mesh(
+                new THREE.SphereGeometry(0.05,8,8),
+                new THREE.MeshBasicMaterial({color:0xffffff})
+            );
+    
+            bullet.position.set(
+                camera.position.x +1,
+                camera.position.y -1,
+                camera.position.z -3
+            );
+            
+            bullet.velocity = new THREE.Vector3(
+                Math.sin(camera.rotation.y),
+                0,
+                -Math.cos(camera.rotation.y)
+            );
+            
+            // after 1000ms, set alive to false and remove from scene
+            // setting alive to false flags our update code to remove
+            // the bullet from the bullets array
+            bullet.alive = true;
+            setTimeout(function(){
+                bullet.alive = false;
+                camera.remove(bullet);
+            }, 1000);
+            
+            // add to scene, array, and set the delay to 10 frames
+            bullets.push(bullet);
+            camera.add(bullet);
+	    }   
 
     }
 
