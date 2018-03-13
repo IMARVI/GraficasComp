@@ -1,0 +1,25 @@
+#mainMenu {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  margin: 0;
+  background-color: rgba(0, 0, 0, 0.25);
+}
+
+#mainMenu div {
+  width: 60%;
+  margin: 20% 20% 0;
+  padding: 3%;
+  text-align: center;
+  background-color: rgba(1, 0, 0, 0.65)
+}
+
+#mainMenu h1 {
+  color: #fafafa;
+  text-shadow: -1px -1px 0 #000,
+                1px -1px 0 #000,
+               -1px  1px 0 #000,
+                1px  1px 0 #000;
+   margin-bottom: 20px;
+}
